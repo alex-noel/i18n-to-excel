@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "test",
-    "package": "pkg mycli.js --targets node10-linux-x64 --output dist/linux/i18n-to-excel"
+    "package": "pkg index.js --targets node10-linux-x64 --output dist/linux/i18n-to-excel"
   },
   "author": "",
   "license": "ISC",
