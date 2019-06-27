@@ -4,7 +4,8 @@
   "description": "Convert translation files into excel spreadsheet",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "package": "pkg mycli.js --targets node10-linux-x64 --output dist/linux/i18n-to-excel"
   },
   "author": "",
   "license": "ISC",
@@ -19,11 +20,12 @@
     "inquirer": "^6.4.1",
     "ora": "^3.4.0",
     "ospath": "^1.2.2",
+    "pkg": "^4.4.0",
     "shelljs": "^0.8.3",
     "tmp": "^0.1.0",
     "xlsx": "^0.14.3"
   },
   "bin": {
-    "convert": "./index.js"
+    "i18n-to-excel": "./index.js"
   }
 }
