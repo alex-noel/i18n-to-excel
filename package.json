@@ -1,0 +1,29 @@
+{
+  "name": "i18n-to-excel",
+  "version": "1.0.0",
+  "description": "Convert translation files into excel spreadsheet",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "bluebird": "^3.5.5",
+    "chalk": "^2.4.2",
+    "figlet": "^1.2.3",
+    "flat": "^4.1.0",
+    "inquirer": "^6.4.1",
+    "ora": "^3.4.0",
+    "ospath": "^1.2.2",
+    "shelljs": "^0.8.3",
+    "tmp": "^0.1.0",
+    "xlsx": "^0.14.3"
+  },
+  "bin": {
+    "convert": "./index.js"
+  }
+}
