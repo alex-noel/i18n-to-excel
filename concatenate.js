@@ -1,7 +1,8 @@
 const shell = require("shelljs");
 const tmp = require("tmp");
 const Promise = require("bluebird");
-
+const fs = require("fs");
+const vm = require("vm");
 const getTranslationsList = PATH => {
   const array = shell.find(PATH || shell.pwd()).filter(file => {
     return file.match(/translations\.js$/);
@@ -39,7 +40,12 @@ const preprocessJs = async tmpFolder => {
 
 const readData = filePathList => {
   let data = filePathList.map(filePath => {
-    const sheet = require(filePath);
+    const fileSourceCode = fs.readFileSync(filePath);
+    const sandbox = {
+      exports: {}
+    };
+    const scope = vm.runInNewContext(fileSourceCode, sandbox);
+    const sheet = sandbox.exports;
     const translationKey = Object.keys(sheet).filter(key => key !== "filePath");
     return {
       sheetName: sheet.filePath,

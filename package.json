@@ -21,9 +21,14 @@
     "ora": "^3.4.0",
     "ospath": "^1.2.2",
     "pkg": "^4.4.0",
+    "requirejs": "^2.3.6",
     "shelljs": "^0.8.3",
     "tmp": "^0.1.0",
-    "xlsx": "^0.14.3"
+    "xlsx": "^0.14.3",
+    "xlsx-style": "^0.8.13"
+  },
+  "pkg": {
+    "scripts": "require.js"
   },
   "bin": {
     "i18n-to-excel": "./index.js"

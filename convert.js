@@ -1,5 +1,6 @@
 const flatten = require("flat");
 const XLSX = require("xlsx");
+XLSX.style_utils = require("xlsx-style");
 const fs = require("fs");
 const shell = require("shelljs");
 const ospath = require("ospath");
@@ -22,6 +23,8 @@ const createBook = sheets => {
       .replace(/\/translations.js/gi, "")
       .slice(-31)
       .replace(/[\/\\]/gi, "_");
+    xlsSheet["!cols"] = [{ wch: 31 }, { wch: 55 }, { wch: 55 }, { wch: 55 }];
+    xlsSheet["!merges"] = [{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } }];
     XLSX.utils.book_append_sheet(book, xlsSheet, sheetName);
   });
 
@@ -39,9 +42,8 @@ const mapDataToSheets = data => {
       flattenTranslations[lang] = flatten(translations[lang]);
     });
     const translationKeys = Object.keys(flattenTranslations.enus);
-
     // heading row
-    rows.push(["FILENAME:", name]);
+    rows.push([`FILENAME:, ${name}`]);
     rows.push(["keys", ...languages]);
 
     translationKeys.forEach(translationKey => {
@@ -71,8 +73,6 @@ const createFile = (book, filepath) => {
   let sheetPath;
   if (filepath) {
     sheetPath = filepath.replace(/^~/, ospath.home());
-  } else {
-    sheetPath = shell.pwd();
   }
   fs.writeFileSync(`${sheetPath}.xlsx`, fileContents);
 };
