@@ -26,7 +26,7 @@ const preprocessJs = async tmpFolder => {
   await Promise.map(newList, filePath => {
     return new Promise((resolve, reject) => {
       shell.exec(
-        `npx babel ${filePath} --out-file ${filePath} --presets=@babel/preset-env`,
+        `npx $(npm bin)/babel ${filePath} --out-file ${filePath} --presets=@babel/preset-env`,
         { async: true },
         (code, stdout, stderr) => {
           if (code != 0) return reject(new Error(stderr));
