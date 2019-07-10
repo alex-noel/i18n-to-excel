@@ -1,6 +1,6 @@
 const flatten = require("flat");
 const XLSX = require("xlsx");
-XLSX.style_utils = require("xlsx-style");
+XLSXstyle = require("xlsx-style");
 const fs = require("fs");
 const shell = require("shelljs");
 const ospath = require("ospath");
@@ -24,11 +24,57 @@ const createBook = sheets => {
       .slice(-31)
       .replace(/[\/\\]/gi, "_");
     xlsSheet["!cols"] = [{ wch: 31 }, { wch: 55 }, { wch: 55 }, { wch: 55 }];
-    xlsSheet["!merges"] = [{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } }];
-    XLSX.utils.book_append_sheet(book, xlsSheet, sheetName);
+    xlsSheet["!merges"] = [{ s: { c: 0, r: 0 }, e: { c: 4, r: 0 } }];
+    const styledSheet = setCellStyles(xlsSheet);
+    XLSX.utils.book_append_sheet(book, styledSheet, sheetName);
   });
 
   return book;
+};
+
+const setCellStyles = sheet => {
+  Object.keys(sheet).forEach(sheetKey => {
+    const [key, cellKey, rowKey] = sheetKey.match(/([A-Z])([0-9].*)/) || [
+      null,
+      null,
+      null
+    ];
+    if (!sheet[key]) {
+      return;
+    }
+    if (sheet[key].s === undefined) {
+      sheet[key].s = {};
+    }
+    if (cellKey === "A" && rowKey === "1") {
+      sheet[key].s.font = {
+        bold: true
+      };
+    }
+    if ((cellKey === "A" || parseInt(rowKey) < 3) && rowKey !== "1") {
+      sheet[key].s.fill = {
+        patternType: "solid",
+        fgColor: {
+          rgb: "00EEEEEE"
+        }
+      };
+      const borderStyle = {
+        style: "thin",
+        color: {
+          rgb: "00000000"
+        }
+      };
+      sheet[key].s.border = {
+        top: borderStyle,
+        bottom: borderStyle,
+        left: borderStyle,
+        right: borderStyle
+      };
+    }
+    sheet[key].s.alignment = {
+      wrapText: true
+    };
+  });
+  return sheet;
 };
 
 const mapDataToSheets = data => {
@@ -43,8 +89,8 @@ const mapDataToSheets = data => {
     });
     const translationKeys = Object.keys(flattenTranslations.enus);
     // heading row
-    rows.push([`FILENAME:, ${name}`]);
-    rows.push(["keys", ...languages]);
+    rows.push([`FILENAME: ${name}`]);
+    rows.push(["Keys", ...languages]);
 
     translationKeys.forEach(translationKey => {
       const translationRow = [translationKey];
@@ -63,8 +109,14 @@ const mapDataToSheets = data => {
   return sheets;
 };
 
+const defaultCellStyle = {
+  alignment: {
+    wrapText: true
+  }
+};
+
 const createFile = (book, filepath) => {
-  const fileContents = XLSX.write(book, {
+  const fileContents = XLSXstyle.write(book, {
     type: "buffer",
     bookType: "xlsx",
     bookSST: false
@@ -74,7 +126,8 @@ const createFile = (book, filepath) => {
   if (filepath) {
     sheetPath = filepath.replace(/^~/, ospath.home());
   }
-  fs.writeFileSync(`${sheetPath}.xlsx`, fileContents);
+
+  fs.writeFileSync(`${sheetPath}.xlsx`, fileContents, defaultCellStyle);
 };
 
 module.exports = {
