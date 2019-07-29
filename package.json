@@ -1,6 +1,6 @@
 {
   "name": "i18n-to-excel",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Convert translation files into excel spreadsheet",
   "main": "index.js",
   "scripts": {
