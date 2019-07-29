@@ -6,33 +6,35 @@ const shell = require("shelljs");
 const ospath = require("ospath");
 
 const createSpreadsheet = (data, filepath) => {
-  const sheets = mapDataToSheets(data);
-  const book = createBook(sheets);
+  const { startCoords, sheet } = mapDataToSheet(data);
+  const book = createBook(sheet, startCoords);
   createFile(book, filepath);
 };
 
-const createBook = sheets => {
+const createBook = (sheet, startCoords) => {
   const book = XLSX.utils.book_new();
 
-  sheets.forEach(sheet => {
-    const xlsSheet = XLSX.utils.aoa_to_sheet(sheet.rows);
-    // sheet name cannot exceed 31 char.
-    // probably later on we might want to have a single sheet
-    // instead of multiple, and store filename as a plain cell
-    const sheetName = sheet.name
-      .replace(/\/translations.js/gi, "")
-      .slice(-31)
-      .replace(/[\/\\]/gi, "_");
-    xlsSheet["!cols"] = [{ wch: 31 }, { wch: 55 }, { wch: 55 }, { wch: 55 }];
-    xlsSheet["!merges"] = [{ s: { c: 0, r: 0 }, e: { c: 4, r: 0 } }];
-    const styledSheet = setCellStyles(xlsSheet);
-    XLSX.utils.book_append_sheet(book, styledSheet, sheetName);
+  const xlsSheet = XLSX.utils.aoa_to_sheet(sheet);
+
+  const sheetName = "Translations";
+  xlsSheet["!cols"] = [
+    { wch: 31 },
+    { wch: 55 },
+    { wch: 55 },
+    { wch: 55 },
+    { wch: 55 }
+  ];
+  xlsSheet["!merges"] = startCoords.map(coordinate => {
+    return { s: { c: 0, r: coordinate }, e: { c: 4, r: coordinate } };
   });
 
+  const styledSheet = setCellStyles(xlsSheet, startCoords);
+  XLSX.utils.book_append_sheet(book, styledSheet, sheetName);
   return book;
 };
 
-const setCellStyles = sheet => {
+const setCellStyles = (sheet, startCoords) => {
+  let prevStartFileCoord = 0;
   Object.keys(sheet).forEach(sheetKey => {
     const [key, cellKey, rowKey] = sheetKey.match(/([A-Z])([0-9].*)/) || [
       null,
@@ -42,15 +44,23 @@ const setCellStyles = sheet => {
     if (!sheet[key]) {
       return;
     }
+
+    const startOfFileCoord = startCoords.indexOf(rowKey - 1);
+    const isStartOfFile = startOfFileCoord >= 0;
+    prevStartFileCoord = isStartOfFile
+      ? startCoords[startOfFileCoord] + 1
+      : prevStartFileCoord;
+    const isHeader = parseInt(rowKey) === prevStartFileCoord + 1;
+
     if (sheet[key].s === undefined) {
       sheet[key].s = {};
     }
-    if (cellKey === "A" && rowKey === "1") {
+    if (cellKey === "A" || isStartOfFile || isHeader) {
       sheet[key].s.font = {
         bold: true
       };
     }
-    if ((cellKey === "A" || parseInt(rowKey) < 3) && rowKey !== "1") {
+    if ((cellKey === "A" || isHeader) && !isStartOfFile) {
       sheet[key].s.fill = {
         patternType: "solid",
         fgColor: {
@@ -74,13 +84,16 @@ const setCellStyles = sheet => {
       wrapText: true
     };
   });
+
   return sheet;
 };
 
-const mapDataToSheets = data => {
-  const sheets = data.map(value => {
+const mapDataToSheet = data => {
+  const sheet = [];
+  let sheetLength = 0;
+  const startCoords = [];
+  data.forEach(value => {
     const { sheetName: name, translations } = value;
-    const rows = [];
     const languages = Object.keys(translations);
     const flattenTranslations = {};
 
@@ -89,8 +102,11 @@ const mapDataToSheets = data => {
     });
     const translationKeys = Object.keys(flattenTranslations.enus);
     // heading row
-    rows.push([`FILENAME: ${name}`]);
-    rows.push(["Keys", ...languages]);
+    startCoords.push(sheetLength);
+    sheet.push([`FILENAME: ${name}`]);
+    sheetLength++;
+    sheet.push(["Keys \\ Languages", ...languages]);
+    sheetLength++;
 
     translationKeys.forEach(translationKey => {
       const translationRow = [translationKey];
@@ -98,21 +114,12 @@ const mapDataToSheets = data => {
         const value = flattenTranslations[lang][translationKey];
         translationRow.push(value || "");
       });
-      rows.push(translationRow);
+      sheet.push(translationRow);
+      sheetLength++;
     });
-    return {
-      name,
-      rows
-    };
   });
 
-  return sheets;
-};
-
-const defaultCellStyle = {
-  alignment: {
-    wrapText: true
-  }
+  return { startCoords, sheet };
 };
 
 const createFile = (book, filepath) => {
@@ -127,7 +134,7 @@ const createFile = (book, filepath) => {
     sheetPath = filepath.replace(/^~/, ospath.home());
   }
 
-  fs.writeFileSync(`${sheetPath}.xlsx`, fileContents, defaultCellStyle);
+  fs.writeFileSync(`${sheetPath}.xlsx`, fileContents);
 };
 
 module.exports = {
