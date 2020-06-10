@@ -34,7 +34,7 @@ const preprocessJs = async (tmpFolder) => {
         `npx ${__dirname}/node_modules/.bin/babel ${filePath} --out-file ${filePath} --presets=@babel/preset-env`,
         { async: true },
         (code, stdout, stderr) => {
-          if (code != 0) return reject(new Error(stderr));
+          if (code != 0) return reject(stderr);
           return resolve(stdout);
         }
       );
@@ -48,6 +48,7 @@ const readData = (filePathList) => {
     const fileSourceCode = fs.readFileSync(filePath);
     const sandbox = {
       exports: {},
+      require: () => ({ CONTACT_EMAIL: {}, CURRENCY_OPTIONS: {} }),
     };
     const scope = vm.runInNewContext(fileSourceCode, sandbox);
     const sheet = sandbox.exports;
