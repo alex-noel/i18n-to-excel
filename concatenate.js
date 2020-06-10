@@ -7,7 +7,8 @@ const getTranslationsList = (PATH) => {
   const array = shell.find(PATH || shell.pwd()).filter((filePath) => {
     return (
       filePath.match(/translations\.js$/) ||
-      (filePath.match(/\/translations\//) && !filePath.endsWith("index.js"))
+      (filePath.match(/\/i18n\/translations\//) &&
+        !filePath.endsWith("index.js"))
     );
   });
   return array;
@@ -18,6 +19,7 @@ const createTempFiles = (filePathList) => {
   filePathList.forEach((filePath, key) => {
     const newPath = `${tmpFolder.name}/${key}-translation.js`;
     shell.cp(filePath, newPath);
+    shell.exec(`sudo chmod 660 ${newPath}`);
     shell.ShellString(`export const filePath = '${filePath}';`).toEnd(newPath);
   });
   const newList = shell.find(`${tmpFolder.name}/*.js`);
