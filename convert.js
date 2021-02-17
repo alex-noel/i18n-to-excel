@@ -100,7 +100,7 @@ const mapDataToSheet = data => {
     languages.forEach(lang => {
       flattenTranslations[lang] = flatten(translations[lang]);
     });
-    const translationKeys = Object.keys(flattenTranslations.enus);
+    const translationKeys = Object.keys(flattenTranslations[Object.keys(flattenTranslations)[0]]);
     // heading row
     startCoords.push(sheetLength);
     sheet.push([`FILENAME: ${name}`]);
